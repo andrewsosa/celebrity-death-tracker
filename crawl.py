@@ -1,9 +1,6 @@
 import sys, os, praw, nltk, wikipedia, requests, dotenv
 from requests.auth import HTTPBasicAuth
 
-server_url = 'http://localhost:5000/recv'
-auth = ('johncena', 'keyboardcat')
-
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 dotenv.load_dotenv(".env")
 
@@ -11,6 +8,8 @@ server_url = os.environ.get("SERVER_URL")
 db_user = os.environ.get("DB_USER")
 db_pwd = os.environ.get("DB_PWD")
 auth = (db_user, db_pwd)
+
+server_url = "http://andrewthewizard.com/wcdt/recv/"
 
 def extract_entities(sample):
     """
@@ -44,6 +43,9 @@ def extract_entities(sample):
     return set(entity_names)
 
 def detect(headline):
+    """
+    Checks input string headline for celebrities.
+    """
 
     # Check with NLTK
     entities = extract_entities(headline)
@@ -88,10 +90,12 @@ def detect(headline):
 
 def process(t):
 
+    print "Processing: ",t
+
     if not any(ext in t.lower() for ext in ["dead", "passed away", "died", "rip", "r.i.p."]):
+        #print "NO DEATHS", t
         return
 
-    print "Processing: ",t
     names, url = list(detect(t))
     for name in names:
         #print t, s
