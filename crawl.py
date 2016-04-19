@@ -90,11 +90,12 @@ def detect(headline):
 
 def process(t):
 
-    print "Processing: ",t
 
     if not any(ext in t.lower() for ext in ["dead", "passed away", "died", "rip", "r.i.p."]):
         #print "NO DEATHS", t
         return
+
+    print "Processing: ",t
 
     names, url = list(detect(t))
     for name in names:
@@ -104,7 +105,8 @@ def process(t):
                 'person': name,
                 'url': url
             }
-            requests.post(server_url, data=payload, auth=auth)
+            res = requests.post(server_url, data=payload, auth=auth)
+            print res.status_code
         except Exception as e:
             print "ERROR", e
 
