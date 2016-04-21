@@ -55,9 +55,9 @@ def detect(headline):
     ents = [[x[i:i+2] for i in range(len(x)-1)] for x in ents]
     ents = [[' '.join(x) for x in y] for y in ents]
 
-    entities = set([item for sublist in ents for item in sublist])
+    entities = entities | set([item for sublist in ents for item in sublist])
 
-    #print ents
+    print "CANDIDATE ENTITIES: ", entities
 
     # Check with name list
     #for e in list(entities):
@@ -76,15 +76,15 @@ def detect(headline):
 
             flag = True
             for c in cats:
-                if "deaths" in c.lower() or "births" in c.lower():
+                if "2016 deaths" in c.lower():
                     flag = False
                     break
             if flag:
-                #print "REJECTED (MISSING CATEGORY)", e
+                print "REJECTED (MISSING CATEGORY)", e
                 entities.discard(e)
 
         except:
-            #print "REJECTED (PAGE NOT FOUND)", e
+            print "REJECTED (PAGE NOT FOUND)", e
             entities.discard(e)
     return entities, url
 
@@ -95,7 +95,7 @@ def process(t):
         #print "NO DEATHS", t
         return
 
-    print "Processing: ",t
+    print "PROCESSING: ",t
 
     names, url = list(detect(t))
     for name in names:
@@ -106,7 +106,7 @@ def process(t):
                 'url': url
             }
             res = requests.post(server_url, data=payload, auth=auth)
-            print res.status_code
+            print "POST STATUS: ", res.status_code
         except Exception as e:
             print "ERROR", e
 
