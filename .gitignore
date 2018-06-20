@@ -1,2 +1,10 @@
+# General
+.DS_Store
+.env
+
+# Python
 *.pyc
-reddit-venv
+
+# Javascript
+*/node_modules
+
