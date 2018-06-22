@@ -1,133 +1,44 @@
-import sys
-import os
 import praw
-import nltk
-import wikipedia
 import requests
-import dotenv
+import logging
 from requests.auth import HTTPBasicAuth
+# dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+# dotenv.load_dotenv(".env")
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-dotenv.load_dotenv(".env")
+# server_url = os.environ.get("SERVER_URL")
+# db_user = os.environ.get("DB_USER")
+# db_pwd = os.environ.get("DB_PWD")
+# auth = (db_user, db_pwd)
 
-server_url = os.environ.get("SERVER_URL")
-db_user = os.environ.get("DB_USER")
-db_pwd = os.environ.get("DB_PWD")
-auth = (db_user, db_pwd)
+# server_url = "http://andrewthewizard.com/wcdt/recv/"
 
-server_url = "http://andrewthewizard.com/wcdt/recv/"
+logging.basicConfig(level=logging.INFO)
+
+user_agent = "A headline crawler by /u/jezusosaku"
+reddit = praw.Reddit(user_agent=user_agent)
+subreddits = ["news", "worldnews", "all"]
 
 
-def extract_entities(sample):
+def crawl_subreddit(sub: str) -> list:
     """
-    Returns a set of proposed entities
+    Retrieve the "hot" headlines from the sub.
     """
-    sentences = nltk.sent_tokenize(sample)
-    tokenized_sentences = [nltk.word_tokenize(sentence)
-                           for sentence in sentences]
-    tagged_sentences = [nltk.pos_tag(sentence)
-                        for sentence in tokenized_sentences]
-    chunked_sentences = nltk.ne_chunk_sents(tagged_sentences, binary=True)
-
-    def extract_entity_names(t):
-        entity_names = []
-
-        if hasattr(t, 'label') and t.label:
-            if t.label() == 'NE':
-                entity_names.append(' '.join([child[0] for child in t]))
-            else:
-                for child in t:
-                    entity_names.extend(extract_entity_names(child))
-
-        return entity_names
-
-    entity_names = []
-    for tree in chunked_sentences:
-        # print(results per sentence)
-        # print(extract_entity_names(tree))
-
-        entity_names.extend(extract_entity_names(tree))
-
-    # print(unique entity names)
-    return set(entity_names)
+    try:
+        logging.info("Crawling %s", sub)
+        return list(reddit.get_subreddit(sub).get_hot())
+    except Exception as e:
+        logging.error("Error crawling {sub}: {error}", sub=sub, error=e)
+        return []
 
 
-def detect(headline):
+def get_headlines() -> list:
     """
-    Checks input string headline for celebrities.
+    Get all the headlines from the configured subreddits.
     """
-
-    # Check with NLTK
-    entities = extract_entities(headline)
-
-    # Generate Extra Options from Entities
-    ents = [e.split() for e in list(entities)]
-    ents = [[x[i:i + 2] for i in range(len(x) - 1)] for x in ents]
-    ents = [[' '.join(x) for x in y] for y in ents]
-
-    entities = entities | set([item for sublist in ents for item in sublist])
-
-    print("CANDIDATE ENTITIES: ", entities)
-
-    url = None
-
-    # Check with Wikipedia
-    for e in list(entities):
-        try:
-            page = wikipedia.page(str(e), auto_suggest=False)
-            cats = page.categories
-            url = page.url
-
-            flag = True
-            for c in cats:
-                if "2016 deaths" in c.lower():
-                    flag = False
-                    break
-            if flag:
-                print("REJECTED (MISSING CATEGORY)", e)
-                entities.discard(e)
-
-        except:
-            print("REJECTED (PAGE NOT FOUND)", e)
-            entities.discard(e)
-    return entities, url
-
-
-def process(t):
-
-    if not any(ext in t.lower()
-               for ext in ["dead", "passed away", "died", "rip", "r.i.p."]):
-        # print("NO DEATHS", t)
-        return
-
-    print("PROCESSING: ", t)
-
-    names, url = list(detect(t))
-    for name in names:
-        # print(t, s)
-        try:
-            payload = {
-                'person': name,
-                'url': url
-            }
-            res = requests.post(server_url, data=payload, auth=auth)
-            print("POST STATUS: ", res.status_code)
-        except Exception as e:
-            print("ERROR", e)
-
-
-def main():
-    user_agent = "A headline crawler by /u/jezusosaku"
-    r = praw.Reddit(user_agent=user_agent)
-    # headlines = r.get_front_page()
-    subreddits = ["news", "worldnews", "all"]
-    headlines = r.get_subreddit("news").get_hot()
-
-    for sub in subreddits:
-        headlines = r.get_subreddit(sub).get_hot()
-        for t in [x.title for x in headlines]:
-            process(t)
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    all_headlines = flatten([crawl_subreddit(sub) for sub in subreddits])
+    return all_headlines
 
 
 if __name__ == "__main__":
-    main()
+    [headline.title for headline in get_headlines()]

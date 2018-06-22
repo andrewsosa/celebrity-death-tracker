@@ -1,0 +1,32 @@
+# serverless.yml
+
+service: express-api
+
+env: ${file(serverless.env.yml)}
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-east-2
+  environment:
+    DB_URI: ${file(serverless.env.yml):connection_uri}
+
+functions:
+  app:
+    handler: app.handler
+    events:
+      - http: ANY /
+      - http: 'ANY {proxy+}'
+  getDeaths:
+    handler: app.handler
+    events:
+      - http: GET /deaths
+
+  # postDeath:
+  #   handler: app.handler
+  #   events:
+  #     - http: 'POST /deaths'
+
+plugins:
+  - serverless-offline
