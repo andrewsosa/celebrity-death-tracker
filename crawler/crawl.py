@@ -12,7 +12,8 @@ from requests.auth import HTTPBasicAuth
 
 # server_url = "http://andrewthewizard.com/wcdt/recv/"
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 user_agent = "A headline crawler by /u/jezusosaku"
 reddit = praw.Reddit(user_agent=user_agent)
@@ -25,7 +26,7 @@ def crawl_subreddit(sub: str) -> list:
     """
     try:
         logging.info("Crawling %s", sub)
-        return list(reddit.get_subreddit(sub).get_hot())
+        return [post.title for post in reddit.get_subreddit(sub).get_hot()]
     except Exception as e:
         logging.error("Error crawling {sub}: {error}", sub=sub, error=e)
         return []
@@ -41,4 +42,4 @@ def get_headlines() -> list:
 
 
 if __name__ == "__main__":
-    [headline.title for headline in get_headlines()]
+    [headline for headline in get_headlines()]

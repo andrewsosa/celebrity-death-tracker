@@ -1,10 +1,14 @@
+import datetime
 import logging
 import nltk
 import requests
 import wikipedia
 from mediawiki import MediaWiki
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -69,9 +73,12 @@ def detect_celebrities(headline):
         try:
             page = wikipedia.page(str(ent), auto_suggest=False)
             cats = page.categories
+            summary = page.summary
             url = page.url
 
-            if "2018 deaths" in [c.lower() for c in cats]:
+            today = datetime.datetime.now().strftime("%B %d, %Y")
+
+            if "2018 deaths" in [c.lower() for c in cats]: # and today in summary:
                 logging.debug("APPROVED: %s", ent)
                 results[ent] = url
             else:
@@ -80,30 +87,38 @@ def detect_celebrities(headline):
         except:
             logging.debug("REJECTED (PAGE NOT FOUND) %s", ent)
 
+    logging.debug("results %s", results)
     return results
 
 
-def process_headline(headline):
+def process_headline(headline) -> list:
     """
-    Check if this headline has a death keyword in it.
+    Check if this headline has a death keyword in it; if so
+    then confirm whether there is a dead celebrity.
     """
 
     if not any(ext in headline.lower()
-               for ext in ["dead", "passed away", "died", "rip", "r.i.p."]):
+               for ext in ["dead", "death", "passed away",
+                           "died", "rip", "r.i.p."]):
         return
 
-    logging.info("Processing: %s", headline)
-
+    logging.info("Processing: %s...", headline)
     results = detect_celebrities(headline)
 
-    for name, wikipedia_url in results.items():
-        try:
-            payload = {
-                'person': name,
-                'url': wikipedia_url
-            }
-            logging.debug("upload %s", payload)
-            # res = requests.post(server_url, data=payload, auth=auth)
-            # logging.debug("POST STATUS: %s", res.status_code)
-        except Exception as e:
-            logging.error("ERROR: %s", e)
+    return [{
+            'person': name,
+            'url': wikipedia_url,
+            'reported': datetime.datetime.utcnow().isoformat()
+            } for name, wikipedia_url in results.items()]
+
+    # for name, wikipedia_url in results.items():
+    #     try:
+    #         payload = {
+    #             'person': name,
+    #             'url': wikipedia_url
+    #         }
+    #         logging.debug("upload %s", payload)
+    #         # res = requests.post(server_url, data=payload, auth=auth)
+    #         # logging.debug("POST STATUS: %s", res.status_code)
+    #     except Exception as e:
+    #         logging.error("ERROR: %s", e)
