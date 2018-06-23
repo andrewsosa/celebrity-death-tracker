@@ -2,7 +2,7 @@
 
 service: express-api
 
-env: ${file(serverless.env.yml)}
+custom: ${file(serverless.env.yml)}
 
 provider:
   name: aws
@@ -10,23 +10,34 @@ provider:
   stage: dev
   region: us-east-2
   environment:
-    DB_URI: ${file(serverless.env.yml):connection_uri}
+    DB_URI: ${self:custom.${opt:stage}.mongodb_uri}
+    HTTP_USER: ${self:custom.auth.username}
+    HTTP_PASS: ${self:custom.auth.password}
 
 functions:
-  app:
-    handler: app.handler
-    events:
-      - http: ANY /
-      - http: 'ANY {proxy+}'
+
+  # DB access for webapp
   getDeaths:
     handler: app.handler
     events:
       - http: GET /deaths
 
-  # postDeath:
-  #   handler: app.handler
-  #   events:
-  #     - http: 'POST /deaths'
+  # Upload route for crawler
+  postDeath:
+    handler: app.handler
+    events:
+      - http: 'POST /deaths'
+
+  # Grab headlines from Reddit
+  redditCrawler:
+    runtime: python3.6
+    handler: crawler/handler.run
+    events:
+      - schedule: rate(2 hours)
+    environment:
+      API: ${self:custom.${opt:stage}.api_host}
+
 
 plugins:
+  - serverless-python-requirements
   - serverless-offline

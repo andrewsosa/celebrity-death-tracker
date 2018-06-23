@@ -8,15 +8,18 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "dev": "nodemon --exec \"serverless offline start\""
+    "dev": "nodemon --exec \"serverless offline start -s local\""
   },
   "dependencies": {
+    "body-parser": "^1.18.3",
     "eslint": "^4.19.1",
     "express": "^4.16.3",
     "mongodb": "^3.0.10",
     "mongojs": "^2.6.0",
     "monk": "^6.0.6",
-    "serverless-http": "^1.6.0"
+    "morgan": "^1.9.0",
+    "serverless-http": "^1.6.0",
+    "serverless-python-requirements": "^4.1.0"
   },
   "devDependencies": {
     "eslint-config-airbnb-base": "^13.0.0",
