@@ -1,6 +1,7 @@
 # General
 .DS_Store
 .env
+serverless.env.yml
 
 # Python
 *.pyc
