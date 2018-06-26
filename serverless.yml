@@ -6,7 +6,6 @@ custom: ${file(serverless.env.yml)}
 
 provider:
   name: aws
-  runtime: nodejs8.10
   stage: dev
   region: us-east-2
   environment:
@@ -18,12 +17,14 @@ functions:
 
   # DB access for webapp
   getDeaths:
+    runtime: nodejs8.10
     handler: app.handler
     events:
       - http: GET /deaths
 
   # Upload route for crawler
   postDeath:
+    runtime: nodejs8.10
     handler: app.handler
     events:
       - http: 'POST /deaths'

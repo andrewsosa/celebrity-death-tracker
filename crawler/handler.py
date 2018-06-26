@@ -1,5 +1,5 @@
-from .crawl import get_headlines
-from .parse import process_headline
+from crawler.crawl import get_headlines
+from crawler.parse import process_headline
 
 import logging
 import os
