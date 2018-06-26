@@ -1,4 +1,8 @@
 {
   "name": "cdt-nltk-service",
-  "type": "docker"
+  "type": "docker",
+  "alias": "cdt-nltk",
+  "env": {
+    "PORT": 80
+  }
 }
