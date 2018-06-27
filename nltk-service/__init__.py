@@ -1,7 +1,9 @@
 """ Microservices w/ NLTK """
 
-import json
+import json, logging
 from nameko.web.handlers import http
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class NLTKService:
@@ -27,7 +29,7 @@ class NLTKService:
         except KeyError:
             return 400, "This isn't a headline."
         except Exception as e:
-            print("Error", str(e))
+            logging.error("Error: %s", str(e))
             return 500, "Something went wrong"
 
 
@@ -50,5 +52,5 @@ class NLTKService:
         except KeyError:
             return 400, "This isn't a headline."
         except Exception as e:
-            print("Error", str(e))
+            logging.error("Error: %s", str(e))
             return 500, "Something went wrong"
