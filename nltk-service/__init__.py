@@ -1,6 +1,6 @@
 """ Microservices w/ NLTK """
 
-import json, logging
+import json, logging, sys, os
 from nameko.web.handlers import http
 
 logging.basicConfig(level=logging.DEBUG)
@@ -19,7 +19,10 @@ class NLTKService:
         from .names import extract_entities
 
         try:
-            data = json.loads(request.get_data(as_text=True))
+            data = json.loads(request.get_data())
+            logging.debug("data type: %s", type(data))
+            print(data)
+            return type(data)
             headline = data['headline']
             payload = {'possible_names': extract_entities(headline)}
             return json.dumps(payload)
@@ -29,7 +32,12 @@ class NLTKService:
         except KeyError:
             return 400, "This isn't a headline."
         except Exception as e:
-            logging.error("Error: %s", str(e))
+            # logging.error("Error: %s", e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logging.error("Error: %s; %s, %s, %s", e, exc_type,
+                          fname, exc_tb.tb_lineno)
+
             return 500, "Something went wrong"
 
 

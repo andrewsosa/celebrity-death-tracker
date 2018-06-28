@@ -30,13 +30,15 @@ functions:
       - http: 'POST /deaths'
 
   # Grab headlines from Reddit
-  redditCrawler:
+  reddit:
     runtime: python3.6
     handler: crawler/handler.run
     events:
       - schedule: rate(2 hours)
     environment:
       API: ${self:custom.${opt:stage}.api_host}
+      PHONEBOOK: ${self:custom.${opt:stage}.phonebook}
+      GRAVEYARD: ${self:custom.${opt:stage}.graveyard}
 
 
 plugins:
