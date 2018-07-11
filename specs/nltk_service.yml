@@ -1,0 +1,15 @@
+# API test for NLTK Service
+meta: 
+  name: NLTK Service
+configuration:
+  scheme: http
+  host: localhost:8000
+  basepath: /
+specs:
+  - name: get "Andrew Sosa" from phonebook
+    request:
+      path: /phonebook
+      method: post
+    response:
+      status_code: 200
+
